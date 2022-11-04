@@ -15,4 +15,4 @@ In particular with enb.conf RF parameters take care to update as appropriate:
 
 * Band and EARFCN
 * rxant 
-* refclkif not using an external frequency reference, e.g. GPSDO
+* refclk if not using an external frequency reference, e.g. GPSDO
