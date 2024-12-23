@@ -1,0 +1,19 @@
+config:
+  network:
+    host: lcran.local
+  mysql:
+    root_passwd: lcroot
+    pyhss_passwd: hsspasswd
+    icscf_passwd: heslo
+    scscf_passwd: heslo
+    pcscf_passwd: heslo
+    smsc_passwd: heslo
+  versions:
+    bind: 9.18-22.04_beta
+    mysql: 9
+    redis: 7
+    pyhss: 1.0.2
+    open5gs: 2.7.2
+    srslte: 23.11
+    rtpengine: mr9.4.1
+    kamailio: 5.8.3

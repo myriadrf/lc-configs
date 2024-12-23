@@ -1,0 +1,112 @@
+---
+- name: LibreCellular HSS
+  hosts: '{{ config.network.host }}'
+  become: no
+  vars_files:
+    - defaults.yml
+    - site.yml
+  tasks:
+    - name: Create BIND container
+      community.docker.docker_container:
+        name: lc-dns
+        image: ubuntu/bind9:{{ config.versions.bind }}
+        pull: yes
+        state: started
+        restart: yes
+        restart_policy: always
+        networks:
+          - name: lc
+            ipv4_address: '{{ dns.ip }}'
+        volumes:
+          - /etc/lc/bind:/etc/bind:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+      tags:
+        - container
+        - dns
+    - name: Create MySQL container
+      community.docker.docker_container:
+        name: lc-mysql
+        image: mysql:{{ config.versions.mysql }}
+        command: 'mysqld --max-connections={{ mysql.max_connections }}'
+        pull: no
+        state: started
+        restart: yes
+        restart_policy: always
+        env:
+          MYSQL_ROOT_PASSWORD: '{{ config.mysql.root_passwd }}'
+          MYSQL_ROOT_HOST: '{{ docker.private_net.gateway }}'
+          MYSQL_DATABASE: '{{ mysql.hss_db }}'
+          MYSQL_USER: '{{ mysql.hss_user }}'
+          MYSQL_PASSWORD: '{{ config.mysql.pyhss_passwd }}'
+        networks:
+          - name: lc
+            ipv4_address: '{{ mysql.ip }}'
+        volumes:
+          - lc-mysql:/var/lib/mysql
+        ports:
+        - '127.0.0.1:3306:3306'
+      tags:
+        - container
+        - mysql
+    - name: Create Redis container
+      community.docker.docker_container:
+        name: lc-redis
+        image: 'redis:{{ config.versions.redis }}'
+        pull: yes
+        state: started
+        restart: yes
+        restart_policy: always
+        networks:
+          - name: lc
+            ipv4_address: '{{ redis.ip }}'
+      tags:
+        - container
+        - redis
+    - name: Create PyHSS base container
+      community.docker.docker_container:
+        name: lc-hss-base
+        image: myriadrf/pyhss:{{ config.versions.pyhss }}
+        pull: yes
+        state: started
+        restart: yes
+        restart_policy: always
+        env:
+          COMPONENT_NAME: base
+        networks:
+          - name: lc
+            ipv4_address: '{{ pyhss.diameter.ip }}'
+        dns_servers:
+          - '{{ dns.ip }}'
+        expose:
+          - '3868/tcp'
+        volumes:
+          - /etc/lc/pyhss:/mnt/pyhss:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+      tags:
+        - container
+        - hss
+    - name: Create PyHSS API container
+      community.docker.docker_container:
+        name: lc-hss-api
+        image: myriadrf/pyhss:{{ config.versions.pyhss }}
+        pull: yes
+        state: started
+        restart: yes
+        restart_policy: always
+        env:
+          PYHSS_IP: '{{ pyhss.api.ip }}'
+          COMPONENT_NAME: api
+        networks:
+          - name: lc
+            ipv4_address: '{{ pyhss.api.ip }}'
+        ports:
+          - '{{ pyhss.api.port }}:8080/tcp'
+        volumes:
+          - /etc/lc/pyhss:/mnt/pyhss:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+      tags:
+        - container
+        - api

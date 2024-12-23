@@ -1,0 +1,104 @@
+---
+- name: LibreCellular IMS Databases
+  hosts: '{{ config.network.host }}'
+  become: no
+  vars_files:
+    - defaults.yml
+    - site.yml
+  module_defaults:
+    community.mysql.mysql_db: &mysql_defaults
+      login_host: 127.0.0.1
+      login_user: root
+      login_password: '{{ config.mysql.root_passwd }}'
+    community.mysql.mysql_query: *mysql_defaults
+    community.mysql.mysql_user: *mysql_defaults
+  tasks:
+    - name: Create databases
+      community.mysql.mysql_db:
+        name:
+          - icscf
+          - scscf
+          - pcscf
+          - smsc
+        state: present
+      tags:
+        - dbs
+    - name: Create database users
+      community.mysql.mysql_user:
+        state: present
+        name: '{{ item.user }}'
+        host: '{{ item.host }}'
+        plugin: caching_sha2_password
+        plugin_auth_string: '{{ item.passwd }}'
+        priv: '{{ item.db }}.*: ALL'
+      loop:
+        - { user: 'icscf', host: '{{ icscf.ip }}', passwd: '{{ config.mysql.icscf_passwd }}', db: 'icscf' }
+        - { user: 'scscf', host: '{{ scscf.ip }}', passwd: '{{ config.mysql.scscf_passwd }}', db: 'scscf' }
+        - { user: 'pcscf', host: '{{ pcscf.ip }}', passwd: '{{ config.mysql.pcscf_passwd }}', db: 'pcscf' }
+        - { user: 'smsc', host: '{{ smsc.ip }}', passwd: '{{ config.mysql.smsc_passwd }}', db: 'smsc' }
+      tags:
+        - users
+    - name: Copy database dump files to host
+      copy:
+         src: sql/
+         dest: /tmp/lcsql
+      tags:
+        - data
+        - dumps
+    - name: Restore I-CSCF data
+      community.mysql.mysql_db:
+        name: icscf
+        state: import
+        target: /tmp/lcsql/icscf.sql
+      tags:
+        - data
+        - icscfdata
+    - name: Restore S-CSCF data
+      community.mysql.mysql_db:
+        name: scscf
+        state: import
+        target: /tmp/lcsql/{{ item }}
+      loop:
+        - standard-create.sql
+        - presence-create.sql
+        - ims_usrloc_scscf-create.sql
+        - ims_dialog-create.sql
+        - ims_charging-create.sql
+      tags:
+        - data
+        - scscfdata
+    - name: Restore P-CSCF data
+      community.mysql.mysql_db:
+        name: pcscf
+        state: import
+        target: /tmp/lcsql/{{ item }}
+      loop:
+        - standard-create.sql
+        - presence-create.sql
+        - ims_usrloc_pcscf-create.sql
+        - ims_dialog-create.sql
+      tags:
+        - data
+        - pcscfdata
+    - name: Restore SMSC data
+      community.mysql.mysql_db:
+        name: smsc
+        state: import
+        target: /tmp/lcsql/{{ item }}
+      loop:
+        - standard-create.sql
+        - smsc-create.sql
+        - dialplan-create.sql
+        - presence-create.sql
+      tags:
+        - data
+        - smscdata
+    - name: Configure I-CSCF
+      community.mysql.mysql_query:
+        login_db: icscf
+        query:
+          - INSERT INTO nds_trusted_domains (trusted_domain) VALUES ('{{ ims.domain }}')
+          - INSERT INTO s_cscf (name, s_cscf_uri) VALUES ('First and only S-CSCF', 'sip:scscf.{{ ims.domain }}:6060')
+          - INSERT INTO s_cscf_capabilities (id_s_cscf, capability) VALUES ('1', 0),('1', 1)
+      tags:
+        - config

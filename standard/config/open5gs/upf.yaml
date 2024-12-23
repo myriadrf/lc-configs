@@ -1,0 +1,41 @@
+logger:
+  file:
+    path: /var/log/open5gs/upf.log
+#  level: info   # fatal|error|warn|info(default)|debug|trace
+
+global:
+  max:
+    ue: 1024
+
+upf:
+    pfcp:
+      server:
+        - address: 172.24.0.22
+      client:
+        smf:
+          - address: 172.24.0.21
+    gtpu:
+      server:
+        - address: 172.24.0.22
+          advertise: 172.24.0.22
+    session:
+      - subnet: 192.168.100.0/24
+        gateway: 192.168.100.1
+        dnn: internet
+        dev: ogstun
+      - subnet: 2001:230:cafe::/48
+        gateway: 2001:230:cafe::1
+        dnn: internet
+        dev: ogstun
+      - subnet: 192.168.101.0/24
+        gateway: 192.168.101.1
+        dnn: ims
+        dev: ogstun2
+      - subnet: 2001:230:babe::/48
+        gateway: 2001:230:babe::1
+        dnn: ims
+        dev: ogstun2
+    metrics:
+      server:
+        - address: 172.24.0.22
+          port: 9091

@@ -1,0 +1,37 @@
+---
+- name: LibreCellular eNodeB
+  hosts: '{{ config.network.host }}'
+  become: no
+  vars_files:
+    - defaults.yml
+    - site.yml
+  tasks:
+    - name: Create srsenb container
+      community.docker.docker_container:
+        name: lc-enb
+        image: myriadrf/srslte:{{ config.versions.srslte }}
+        pull: yes
+        state: started
+        restart: yes
+        restart_policy: always
+        tty: true
+        interactive: true
+        privileged: true
+        env:
+          COMPONENT_NAME: enb
+        networks:
+          - name: lc
+            ipv4_address: '{{ srsenb.ip }}'
+        expose:
+          - '36412/sctp'
+          - '2152/udp'
+        devices:
+          - /dev/bus:/dev/bus
+        volumes:
+          - /etc/lc/srslte:/etc/lc/srslte:ro
+          - /dev/bus/usb:/dev/bus/usb:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+      tags:
+        - container
+        - srsenb

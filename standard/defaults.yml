@@ -1,0 +1,83 @@
+docker:
+  private_net:
+    subnet: 172.24.0.0/24
+    gateway: 172.24.0.254
+pdn:
+  internet:
+    ipv4_subnet: 192.168.100.0/24
+  ims:
+    ipv4_subnet: 192.168.101.0/24
+ue:
+  max_number: 1024
+ims:
+  domain: ims.mnc001.mcc001.3gppnetwork.org
+dns:
+  ip: 172.24.0.10
+mysql:
+  max_connections: 250
+  hss_db: hss
+  hss_user: pyhss
+  ip: 172.24.0.11
+  ip2: 172.24.0.99
+redis:
+  ip: 172.24.0.12
+pyhss:
+  diameter:
+    ip: 172.24.0.13
+  hss:
+    ip: 172.24.0.14
+  api:
+    ip: 172.24.0.15
+    port: 8080
+sgwc:
+  ip: 172.24.0.19
+sgwu: 
+  ip: 172.24.0.20
+  advertise_ip: 172.24.0.20
+smf:
+  ip: 172.24.0.21
+  dns_1: 8.8.8.8
+  dns_2: 8.8.4.4
+upf:
+  ip: 172.24.0.22
+  advertise_ip: 172.24.0.22
+mme:
+  ip: 172.24.0.23
+amf:
+  ip: 172.24.0.24
+ausf:
+  ip: 172.24.0.25
+nrf:
+  ip: 172.24.0.26
+udm:
+  ip: 172.24.0.27
+udr: 
+  ip: 172.24.0.28
+pcf:
+  ip: 172.24.0.29
+nssf:
+  ip: 172.24.0.30
+bsf:
+  ip: 172.24.0.31
+scp:
+  ip: 172.24.0.32
+sepp:
+  sbi:
+    ip: 172.24.0.33
+  n32:
+    ip: 172.24.0.34
+  n32f:
+    ip: 172.24.0.35
+rtpengine:
+  ip: 172.24.0.50
+icscf:
+  ip: 172.24.0.51
+scscf:
+  ip: 172.24.0.52
+pcscf:
+  ip: 172.24.0.53
+smsc:
+  ip: 172.24.0.54
+srsenb:
+  ip: 172.24.0.70
+

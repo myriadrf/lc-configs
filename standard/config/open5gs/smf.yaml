@@ -1,0 +1,60 @@
+logger:
+  file:
+    path: /var/log/open5gs/smf.log
+#  level: info   # fatal|error|warn|info(default)|debug|trace
+
+sbi:
+    server:
+      no_tls: true
+    client:
+      no_tls: true
+
+global:
+  max:
+    ue: 1024  # The number of UE can be increased depending on memory size.
+  parameter:
+      no_ipv4v6_local_addr_in_packet_filter: true
+
+smf:
+    freeDiameter: /etc/lc/freeDiameter/smf.conf
+    gtpc:
+      server:
+        - address: 172.24.0.21
+    gtpu:
+      server:
+        - address: 172.24.0.21
+    pfcp:
+      server:
+        - address: 172.24.0.21
+      client:
+        upf:
+          - address: 172.24.0.22
+    session:
+      - subnet: 192.168.100.0/24
+        gateway: 192.168.100.1
+        dnn: internet
+        dev: ogstun
+      - subnet: 2001:230:cafe::/48
+        gateway: 2001:230:cafe::1
+        dnn: internet
+        dev: ogstun
+      - subnet: 192.168.101.0/24
+        gateway: 192.168.101.1
+        dnn: ims
+        dev: ogstun2
+      - subnet: 2001:230:babe::/48
+        gateway: 2001:230:babe::1
+        dnn: ims
+        dev: ogstun2
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+      - 2001:4860:4860::8888
+      - 2001:4860:4860::8844
+    p-cscf:
+      - 172.24.0.53
+    mtu: 1450
+    metrics:
+      server:
+        - address: 172.24.0.21
+          port: 9091

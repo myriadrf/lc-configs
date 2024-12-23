@@ -1,0 +1,22 @@
+---
+- name: LibreCellular Base
+  hosts: '{{ config.network.host }}'
+  become: no
+  vars_files:
+    - defaults.yml
+    - site.yml
+  tasks:
+    - name: Create LibreCellular private network
+      community.docker.docker_network:
+        name: lc
+        ipam_config:
+          - subnet: '{{ docker.private_net.subnet }}'
+            gateway: '{{ docker.private_net.gateway }}'
+      tags:
+        - network
+    - name: Install configuration files
+      copy:
+        src: config/
+        dest: /etc/lc
+      tags:
+        - config

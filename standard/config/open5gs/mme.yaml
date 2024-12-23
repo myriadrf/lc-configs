@@ -1,0 +1,47 @@
+logger:
+  file:
+    path: /var/log/open5gs/mme.log
+#  level: info   # fatal|error|warn|info(default)|debug|trace
+
+global:
+  max:
+    ue: 1024
+
+mme:
+    freeDiameter: /etc/lc/freeDiameter/mme.conf
+    s1ap:
+      server:
+        - address: 172.24.0.23
+    gtpc:
+      server:
+        - address: 172.24.0.23
+      client:
+        sgwc:
+          - address: 172.24.0.19
+        smf:
+          - address: 172.24.0.21
+    gummei: 
+      - plmn_id:
+          mcc: 001
+          mnc: 01
+        mme_gid: 2
+        mme_code: 1
+    tai:
+      - plmn_id:
+          mcc: 001
+          mnc: 01
+        tac: 1
+    security:
+        integrity_order : [ EIA2, EIA1, EIA0 ]
+        ciphering_order : [ EEA0, EEA1, EEA2 ]
+    network_name:
+        full: LibreCellular
+        short: LibreCellular
+    mme_name: open5gs-mme0
+    metrics:
+      server:
+        - address: 172.24.0.23
+          port: 9091
+    time:
+      t3412:
+        value: 540

@@ -1,0 +1,13 @@
+$ORIGIN mnc001.mcc001.pub.3gppnetwork.org.
+$TTL 1W
+@                       1D IN SOA       localhost. root.localhost. (
+                                        1		; serial
+                                        3H              ; refresh
+                                        15M             ; retry
+                                        1W              ; expiry
+                                        1D )            ; minimum
+
+                        1D IN NS        pubns
+pubns                   1D IN A         172.24.0.10
+
+aes                     1D IN A         172.22.0.30

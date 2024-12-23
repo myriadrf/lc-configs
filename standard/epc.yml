@@ -1,0 +1,136 @@
+---
+- name: LibreCellular EPC
+  hosts: '{{ config.network.host }}'
+  become: no
+  vars_files:
+    - defaults.yml
+    - site.yml
+  tasks:
+    - name: Create Open5GS SMF container
+      community.docker.docker_container:
+        name: lc-smf
+        image: myriadrf/open5gs:{{ config.versions.open5gs }}
+        pull: yes
+        state: started
+        restart: yes
+        restart_policy: always
+        env:
+          COMPONENT_NAME: smf-1
+        networks:
+          - name: lc
+            ipv4_address: '{{ smf.ip }}'
+        volumes:
+          - /etc/lc/open5gs:/etc/lc/open5gs:ro
+          - /etc/lc/freeDiameter:/etc/lc/freeDiameter:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+        expose:
+          - '3868/udp'
+          - '3868/tcp'
+          - '3868/sctp'
+          - '5868/udp'
+          - '5868/tcp'
+          - '5868/sctp'
+          - '8805/udp'
+          - '2123/udp'
+          - '7777/tcp'
+          - '9091/tcp'
+      tags:
+        - container
+        - smf
+    - name: Create Open5GS UPF container
+      community.docker.docker_container:
+        name: lc-upf
+        image: myriadrf/open5gs:{{ config.versions.open5gs }}
+        pull: yes
+        state: started
+        restart: yes
+        restart_policy: always
+        privileged: true
+        capabilities: 
+          - NET_ADMIN
+        sysctls:
+          net.ipv4.ip_forward: 1
+        env:
+          COMPONENT_NAME: upf-1
+        networks:
+          - name: lc
+            ipv4_address: '{{ upf.ip }}'
+        volumes:
+          - /etc/lc/open5gs:/etc/lc/open5gs:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+        expose:
+          - '2152/udp'
+          - '8805/udp'
+          - '9091/tcp'
+      tags:
+        - container
+        - upf
+    - name: Create Open5GS SGW-C container
+      community.docker.docker_container:
+        name: lc-sgwc
+        image: myriadrf/open5gs:{{ config.versions.open5gs }}
+        pull: yes
+        state: started
+        restart: yes
+        restart_policy: always
+        env:
+          COMPONENT_NAME: sgwc-1
+        networks:
+          - name: lc
+            ipv4_address: '{{ sgwc.ip }}'
+        volumes:
+          - /etc/lc/open5gs:/etc/lc/open5gs:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+        expose:
+          - '2123/udp'
+          - '8805/udp'
+      tags:
+        - container
+        - sgwc
+    - name: Create Open5GS SGW-U container
+      community.docker.docker_container:
+        name: lc-sgwu
+        image: myriadrf/open5gs:{{ config.versions.open5gs }}
+        pull: yes
+        state: started
+        restart: yes
+        restart_policy: always
+        env:
+          COMPONENT_NAME: sgwu-1
+        networks:
+          - name: lc
+            ipv4_address: '{{ sgwu.ip }}'
+        volumes:
+          - /etc/lc/open5gs:/etc/lc/open5gs:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+        expose:
+          - '8805/udp'
+          - '2152/udp'
+      tags:
+        - container
+        - sgwu
+    - name: Create Open5GS MME container
+      community.docker.docker_container:
+        name: lc-mme
+        image: myriadrf/open5gs:{{ config.versions.open5gs }}
+        pull: yes
+        state: started
+        restart: yes
+        restart_policy: always
+        env:
+          COMPONENT_NAME: mme-1
+        networks:
+          - name: lc
+            ipv4_address: '{{ mme.ip }}'
+        volumes:
+          - /etc/lc/open5gs:/etc/lc/open5gs:ro
+          - /etc/lc/freeDiameter:/etc/lc/freeDiameter:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+      tags:
+        - container
+        - mme

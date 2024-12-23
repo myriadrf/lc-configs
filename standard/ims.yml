@@ -1,0 +1,149 @@
+---
+- name: LibreCellular IMS
+  hosts: '{{ config.network.host }}'
+  become: no
+  vars_files:
+    - defaults.yml
+    - site.yml
+  tasks:
+    - name: Create rtpengine container
+      community.docker.docker_container:
+        name: lc-rtpengine
+        image: myriadrf/rtpengine:{{ config.versions.rtpengine }}
+        pull: no
+        state: started
+        restart: yes
+        restart_policy: always
+        privileged: true
+        capabilities: 
+          - NET_ADMIN
+        networks:
+          - name: lc
+            ipv4_address: '{{ rtpengine.ip }}'
+        expose:
+          - '2223/udp'
+          - '49000-50000/udp'
+        volumes:
+          - /etc/lc/rtpengine:/etc/lc/rtpengine:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+      tags:
+        - container
+        - rtpengine
+    - name: Create I-CSCF container
+      community.docker.docker_container:
+        name: lc-icscf
+        image: myriadrf/kamailio:{{ config.versions.kamailio }}
+        pull: no
+        state: started
+        restart: yes
+        restart_policy: always
+        env:
+          COMPONENT_NAME: icscf-1
+        networks:
+          - name: lc
+            ipv4_address: '{{ icscf.ip }}'
+        dns_servers:
+          - '{{ dns.ip }}'
+        expose:
+          - "3869/udp"
+          - "3869/tcp"
+          - "4060/udp"
+          - "4060/tcp"
+        volumes:
+          - /etc/lc/kamailio_icscf:/etc/lc/kamailio_icscf:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+      tags:
+        - container
+        - icscf
+    - name: Create S-CSCF container
+      community.docker.docker_container:
+        name: lc-scscf
+        image: myriadrf/kamailio:{{ config.versions.kamailio }}
+        pull: no
+        state: started
+        restart: yes
+        restart_policy: always
+        env:
+          COMPONENT_NAME: scscf-1
+        networks:
+          - name: lc
+            ipv4_address: '{{ scscf.ip }}'
+        dns_servers:
+          - '{{ dns.ip }}'
+        expose:
+          - "3870/udp"
+          - "3870/tcp"
+          - "6060/udp"
+          - "6060/tcp"
+        volumes:
+          - /etc/lc/kamailio_scscf:/etc/lc/kamailio_scscf:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+      tags:
+        - container
+        - scscf
+    - name: Create P-CSCF container
+      community.docker.docker_container:
+        name: lc-pcscf
+        image: myriadrf/kamailio:{{ config.versions.kamailio }}
+        pull: no
+        state: started
+        restart: yes
+        restart_policy: always
+        privileged: true
+        capabilities: 
+          - NET_ADMIN
+        sysctls:
+          net.ipv4.ip_nonlocal_bind: 1
+          net.ipv6.ip_nonlocal_bind: 1
+        env:
+          COMPONENT_NAME: pcscf-1
+        networks:
+          - name: lc
+            ipv4_address: '{{ pcscf.ip }}'
+        dns_servers:
+          - '{{ dns.ip }}'
+        expose:
+          - "3871/udp"
+          - "3871/tcp"
+          - "5060/tcp"
+          - "5060/udp"
+          - "5100-5120/tcp"
+          - "5100-5120/udp"
+          - "6100-6120/tcp"
+          - "6100-6120/udp"
+        volumes:
+          - /etc/lc/kamailio_pcscf:/etc/lc/kamailio_pcscf:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+      tags:
+        - container
+        - pcscf
+    - name: Create SMSC container
+      community.docker.docker_container:
+        name: lc-smsc
+        image: myriadrf/kamailio:{{ config.versions.kamailio }}
+        pull: no
+        state: started
+        restart: yes
+        restart_policy: always
+        env:
+          COMPONENT_NAME: smsc-1
+        networks:
+          - name: lc
+            ipv4_address: '{{ smsc.ip }}'
+        dns_servers:
+          - '{{ dns.ip }}'
+        expose:
+          - "7090/udp"
+          - "7090/tcp"
+        volumes:
+          - /etc/lc/kamailio_smsc:/etc/lc/kamailio_smsc:ro
+          - /etc/timezone:/etc/timezone:ro
+          - /etc/localtime:/etc/localtime:ro
+      tags:
+        - container
+        - smsc
+

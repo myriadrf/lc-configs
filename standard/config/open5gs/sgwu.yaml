@@ -1,0 +1,20 @@
+logger:
+  file:
+    path: /var/log/open5gs/sgwu.log
+#  level: info   # fatal|error|warn|info(default)|debug|trace
+
+global:
+  max:
+    ue: 1024
+
+sgwu:
+    gtpu:
+      server:
+        - address: 172.24.0.20
+          advertise: 172.24.0.20
+    pfcp:
+      server:
+        - address: 172.24.0.20
+      client:
+        sgwc:
+          - address: 172.24.0.19
